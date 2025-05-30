@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -62,3 +64,24 @@ predicciones_reales = scaler_y.inverse_transform(predicciones)
 print("\nPredicciones de prueba (precios reales):")
 for i, pred in enumerate(predicciones_reales):
     print(f"Ejemplo {i + 1}: ${pred[0]:,.2f}")
+
+# Obtener predicciones para todo el conjunto de prueba
+predicciones_completas = modelo.predict(X_prueba)
+predicciones_desnormalizadas = scaler_y.inverse_transform(predicciones_completas)
+y_prueba_desnormalizado = scaler_y.inverse_transform(y_prueba)
+
+# Crear la gráfica
+plt.figure(figsize=(8, 6))
+plt.scatter(y_prueba_desnormalizado, predicciones_desnormalizadas, color='blue', alpha=0.6, label='Predicciones')
+plt.plot([y_prueba_desnormalizado.min(), y_prueba_desnormalizado.max()],
+         [y_prueba_desnormalizado.min(), y_prueba_desnormalizado.max()],
+         'r--', label='Predicción perfecta')
+plt.xlabel("Precio real")
+plt.ylabel("Precio predicho")
+plt.title("Predicciones vs Valores reales")
+plt.legend()
+plt.grid(True)
+
+# Guardar la imagen
+plt.savefig("resultados/predicciones_vs_reales.png")
+plt.show()
