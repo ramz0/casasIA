@@ -3,8 +3,7 @@ import random
 
 # Generar datos ficticios de viviendas
 data = []
-ciudades = ["Madrid", "Barcelona", "Valencia", "Sevilla", "Bilbao"]
-
+ciudades = ["CDMX", "Guadalajara", "Monterrey", "Puebla", "Mérida", "Tijuana"]
 for _ in range(200):  # Puedes cambiar a 500 o más
     superficie = random.randint(50, 250)
     habitaciones = random.randint(1, 6)
