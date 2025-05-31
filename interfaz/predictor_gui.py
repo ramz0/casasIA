@@ -94,8 +94,8 @@ boton_predecir = ctk.CTkButton(
     ventana,
     text="Predecir precio",
     command=predecir_precio,
-    fg_color="#FFD700",  
-    hover_color="#FFC107" 
+    fg_color="#096266",  
+    hover_color="#388C91" 
 )
 boton_predecir.pack(pady=10)
 
@@ -103,8 +103,9 @@ boton_ver_grafica = ctk.CTkButton(
     ventana,
     text="Ver gráfica de resultados",
     command=mostrar_grafica,
-    fg_color="#9C27B0",  
-    hover_color="#BA68C8"  
+    fg_color="#E6E1E8",  
+    hover_color="#F2EEF3",  
+    text_color="#096266"
 )
 boton_ver_grafica.pack(pady=10)
 
