@@ -1,76 +1,78 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import joblib
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+import matplotlib.pyplot as plt
 
-# 1. Cargar los datos
+# =======================
+# 1. Cargar datos
+# =======================
 df = pd.read_csv("data/viviendas.csv")
+if len(df) < 50:
+    raise ValueError("¡El conjunto de datos es demasiado pequeño! Genera más datos en generar_datos.py")
 
-# 2. Separar variables
 X = df.drop("precio", axis=1)
 y = df["precio"]
 
-# 3. Preprocesamiento
-# Separar columnas numéricas y categóricas
 columnas_numericas = ["superficie", "habitaciones", "antigüedad"]
 columnas_categoricas = ["ubicacion"]
 
-preprocesador = ColumnTransformer(transformers=[
+preprocesador_X = ColumnTransformer(transformers=[
     ("num", StandardScaler(), columnas_numericas),
-    ("cat", OneHotEncoder(handle_unknown="ignore"), columnas_categoricas)
+    ("cat", OneHotEncoder(), columnas_categoricas)
 ])
 
-# 4. Separar conjunto de entrenamiento y prueba
+scaler_y = StandardScaler()
+
+# =======================
+# 2. División y preprocesamiento
+# =======================
 X_entreno, X_prueba, y_entreno, y_prueba = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Escalar la variable objetivo (precio)
-scaler_y = StandardScaler()
+X_entreno = preprocesador_X.fit_transform(X_entreno)
+X_prueba = preprocesador_X.transform(X_prueba)
+
 y_entreno = scaler_y.fit_transform(y_entreno.values.reshape(-1, 1))
 y_prueba = scaler_y.transform(y_prueba.values.reshape(-1, 1))
 
-# 5. Crear el pipeline con preprocesamiento
-X_entreno = preprocesador.fit_transform(X_entreno)
-X_prueba = preprocesador.transform(X_prueba)
-
-
-# 6. Crear la red neuronal
+# =======================
+# 3. Modelo
+# =======================
 modelo = Sequential()
 modelo.add(Dense(10, activation='relu', input_shape=(X_entreno.shape[1],)))
-modelo.add(Dense(1))  # Salida: un solo valor (precio)
-
-# 7. Compilar el modelo
+modelo.add(Dense(1))
 modelo.compile(optimizer=Adam(), loss='mean_squared_error')
+modelo.fit(X_entreno, y_entreno, epochs=100, batch_size=16, validation_split=0.2)
 
-# 8. Entrenar el modelo
-modelo.fit(X_entreno, y_entreno, epochs=100, batch_size=10, validation_split=0.2)
-
-# 9. Evaluar el modelo
+# =======================
+# 4. Evaluación
+# =======================
 loss = modelo.evaluate(X_prueba, y_prueba)
-print(f"Pérdida (error cuadrático medio): {loss}")
+print(f"Pérdida (error cuadrático medio): {loss:.4f}")
 
-# 10. Realizar predicciones
+# =======================
+# 5. Predicciones
+# =======================
 predicciones = modelo.predict(X_prueba[:5])
-
-# Desnormalizar para obtener precios reales
 predicciones_reales = scaler_y.inverse_transform(predicciones)
-
 print("\nPredicciones de prueba (precios reales):")
 for i, pred in enumerate(predicciones_reales):
     print(f"Ejemplo {i + 1}: ${pred[0]:,.2f}")
 
-# Obtener predicciones para todo el conjunto de prueba
+# =======================
+# 6. Gráfica
+# =======================
 predicciones_completas = modelo.predict(X_prueba)
 predicciones_desnormalizadas = scaler_y.inverse_transform(predicciones_completas)
 y_prueba_desnormalizado = scaler_y.inverse_transform(y_prueba)
 
-# Crear la gráfica
 plt.figure(figsize=(8, 6))
 plt.scatter(y_prueba_desnormalizado, predicciones_desnormalizadas, color='blue', alpha=0.6, label='Predicciones')
 plt.plot([y_prueba_desnormalizado.min(), y_prueba_desnormalizado.max()],
@@ -82,6 +84,20 @@ plt.title("Predicciones vs Valores reales")
 plt.legend()
 plt.grid(True)
 
-# Guardar la imagen
+os.makedirs("resultados", exist_ok=True)
 plt.savefig("resultados/predicciones_vs_reales.png")
-plt.show()
+plt.close()
+
+# =======================
+# 7. Guardar modelo y escaladores
+# =======================
+os.makedirs("modelos", exist_ok=True)
+
+# Guardar modelo entrenado
+modelo.save("modelos/modelo_entrenado.keras")
+
+# Guardar preprocesadores
+joblib.dump(preprocesador_X, "modelos/preprocesador_X.pkl")
+joblib.dump(scaler_y, "modelos/scaler_y.pkl")
+
+print("\n✅ Modelo y preprocesadores guardados correctamente.")
