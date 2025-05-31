@@ -50,7 +50,7 @@ entrada_superficie = ctk.CTkEntry(ventana, placeholder_text="Superficie (m²)")
 entrada_habitaciones = ctk.CTkEntry(ventana, placeholder_text="Número de habitaciones")
 entrada_antiguedad = ctk.CTkEntry(ventana, placeholder_text="Antigüedad (años)")
 
-combo_ubicacion = ctk.CTkComboBox(ventana, values=["CDMX", "Guadalajara", "Monterrey", "Puebla", "Mérida", "Tijuana"])
+combo_ubicacion = ctk.CTkComboBox(ventana, values=["Madrid", "Barcelona", "Sevilla", "Valencia", "Bilbao"])
 
 etiqueta_resultado = ctk.CTkLabel(ventana, text="", font=ctk.CTkFont(size=16, weight="bold"))
 
